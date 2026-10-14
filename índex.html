@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão Inho Dú Corte</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0D0D0D; color: #F4F4F5; font-family: system-ui, -apple-system, sans-serif; }
+    .gold-accent { color: #D4AF37; }
+    .border-gold { border-color: #D4AF37; }
+    .bg-gold { background-color: #D4AF37; }
+    .bg-gold:hover { background-color: #C29F2E; }
+    
+    @media print {
+      body * { visibility: hidden; }
+      #comprovante-print, #comprovante-print * { visibility: visible; }
+      #comprovante-print { position: absolute; left: 0; top: 0; width: 100%; color: #000; background: #fff; p: 10px; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TELA DE LOGIN -->
+  <div id="login-screen" class="fixed inset-0 bg-[#0D0D0D] flex items-center justify-center z-50 p-4">
+    <div class="bg-[#18181B] border border-zinc-800 p-8 rounded-2xl max-w-md w-full shadow-2xl">
+      <div class="text-center mb-6">
+        <i class="fa-solid fa-scissors text-4xl text-[#D4AF37] mb-2"></i>
+        <h1 class="text-2xl font-bold tracking-tight">Gestão <span class="gold-accent">Inho Dú Corte</span></h1>
+        <p class="text-zinc-400 text-xs mt-1">Acesso Administrativo Reservado</p>
+      </div>
+      
+      <form onsubmit="fazerLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-1">E-mail</label>
+          <input type="email" id="login-email" value="admin@inhoducorte.com" required class="w-full bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-1">Senha</label>
+          <input type="password" id="login-senha" value="inho123" required class="w-full bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+        </div>
+        <button type="submit" class="w-full bg-gold text-black font-bold py-2.5 rounded-lg text-sm shadow-lg shadow-[#d4af3722]">Acessar Sistema</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SISTEMA PRINCIPAL -->
+  <div id="app-screen" class="hidden flex-1 flex flex-col md:flex-row">
+    
+    <!-- MENU LATERAL -->
+    <aside class="w-full md:w-64 bg-[#18181B] border-r border-zinc-800 p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center gap-3 mb-8 px-2">
+          <i class="fa-solid fa-scissors text-2xl text-[#D4AF37]"></i>
+          <span class="font-bold text-lg">Inho Dú <span class="gold-accent">Corte</span></span>
+        </div>
+        
+        <nav class="space-y-1">
+          <button onclick="navegar('dashboard')" id="btn-dashboard" class="nav-btn w-full text-left px-3.5 py-2.5 rounded-lg bg-[#27272A] text-white font-medium text-sm flex items-center gap-3">
+            <i class="fa-solid fa-chart-line w-4 text-[#D4AF37]"></i> Painel Geral
+          </button>
+          <button onclick="navegar('pdv')" id="btn-pdv" class="nav-btn w-full text-left px-3.5 py-2.5 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white text-sm flex items-center gap-3">
+            <i class="fa-solid fa-cash-register w-4 text-[#D4AF37]"></i> Venda Rápida (PDV)
+          </button>
+          <button onclick="navegar('estoque')" id="btn-estoque" class="nav-btn w-full text-left px-3.5 py-2.5 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white text-sm flex items-center gap-3">
+            <i class="fa-solid fa-boxes-stacked w-4 text-[#D4AF37]"></i> Produtos & Estoque
+          </button>
+          <button onclick="navegar('despesas')" id="btn-despesas" class="nav-btn w-full text-left px-3.5 py-2.5 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white text-sm flex items-center gap-3">
+            <i class="fa-solid fa-receipt w-4 text-[#D4AF37]"></i> Caixa & Despesas
+          </button>
+        </nav>
+      </div>
+
+      <div class="pt-4 border-t border-zinc-800">
+        <button onclick="sair()" class="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-950/30 rounded flex items-center gap-2">
+          <i class="fa-solid fa-right-from-bracket"></i> Sair do Sistema
+        </button>
+      </div>
+    </aside>
+
+    <!-- ÁREA DE CONTEÚDO -->
+    <main class="flex-1 p-4 md:p-8 space-y-6 overflow-y-auto">
+      
+      <!-- CABEÇALHO -->
+      <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-800 pb-4">
+        <div>
+          <h1 id="titulo-pagina" class="text-2xl font-bold text-white">Painel Geral</h1>
+          <p class="text-xs text-zinc-400">Barbearia Inho Dú Corte • Controle em Tempo Real</p>
+        </div>
+        <span class="inline-flex items-center gap-2 text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-3 py-1 rounded-full font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Caixa Aberto
+        </span>
+      </header>
+
+      <!-- MÓDULO 1: DASHBOARD -->
+      <section id="mod-dashboard" class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800">
+            <p class="text-xs text-zinc-400 uppercase font-medium">Faturamento Total</p>
+            <h3 id="dash-faturamento" class="text-2xl font-bold gold-accent mt-2">R$ 0,00</h3>
+          </div>
+          <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800">
+            <p class="text-xs text-zinc-400 uppercase font-medium">Atendimentos / Vendas</p>
+            <h3 id="dash-vendas-qtd" class="text-2xl font-bold text-white mt-2">0</h3>
+          </div>
+          <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800">
+            <p class="text-xs text-zinc-400 uppercase font-medium">Despesas Registradas</p>
+            <h3 id="dash-despesas" class="text-2xl font-bold text-red-400 mt-2">R$ 0,00</h3>
+          </div>
+          <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800">
+            <p class="text-xs text-zinc-400 uppercase font-medium">Lucro Líquido Estimado</p>
+            <h3 id="dash-lucro" class="text-2xl font-bold text-emerald-400 mt-2">R$ 0,00</h3>
+          </div>
+        </div>
+
+        <div class="bg-[#18181B] p-6 rounded-xl border border-zinc-800 space-y-4">
+          <h3 class="text-md font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Alerta de Estoque Mínimo
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-zinc-300">
+              <thead class="bg-[#27272A] text-xs text-zinc-400 uppercase">
+                <tr>
+                  <th class="p-3">Produto</th>
+                  <th class="p-3">Estoque Atual</th>
+                  <th class="p-3">Mínimo Configurado</th>
+                  <th class="p-3">Status</th>
+                </tr>
+              </thead>
+              <tbody id="dash-tabela-estoque" class="divide-y divide-zinc-800">
+                <tr><td colSpan="4" class="p-4 text-center text-zinc-500">Carregando indicadores...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 2: VENDA RÁPIDA (PDV) -->
+      <section id="mod-pdv" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Lista de Serviços -->
+          <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800">
+            <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-scissors gold-accent"></i> Serviços de Cabelo e Barba
+            </h3>
+            <div id="pdv-servicos-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <!-- Renderizado via JS -->
+            </div>
+          </div>
+
+          <!-- Lista de Produtos -->
+          <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800">
+            <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-spray-can gold-accent"></i> Produtos do Balcão
+            </h3>
+            <div id="pdv-produtos-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <!-- Renderizado via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Comanda / Carrinho -->
+        <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800 flex flex-col justify-between h-fit space-y-4">
+          <div>
+            <h3 class="text-md font-bold text-white border-b border-zinc-800 pb-3 flex justify-between items-center">
+              <span>Comanda de Atendimento</span>
+              <i class="fa-solid fa-receipt text-zinc-500"></i>
+            </h3>
+            
+            <div id="carrinho-itens" class="divide-y divide-zinc-800 my-4 max-h-60 overflow-y-auto">
+              <p class="text-xs text-zinc-500 text-center py-6">Nenhum item adicionado ainda.</p>
+            </div>
+          </div>
+
+          <div class="border-t border-zinc-800 pt-4 space-y-4">
+            <div class="flex justify-between items-center text-lg font-bold">
+              <span>Total:</span>
+              <span id="carrinho-total" class="gold-accent">R$ 0,00</span>
+            </div>
+
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1">Forma de Pagamento</label>
+              <select id="pdv-pagamento" class="w-full bg-[#27272A] border border-zinc-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+                <option value="DINHEIRO">Dinheiro</option>
+                <option value="PIX">Pix</option>
+                <option value="DEBITO">Cartão de Débito</option>
+                <option value="CREDITO">Cartão de Crédito</option>
+              </select>
+            </div>
+
+            <button onclick="finalizarVenda()" class="w-full bg-gold text-black font-bold py-3 rounded-lg text-sm transition-all shadow-lg shadow-[#d4af3722]">
+              Finalizar & Emitir Comprovante
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 3: ESTOQUE E PRODUTOS -->
+      <section id="mod-estoque" class="hidden space-y-6">
+        <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800 space-y-4">
+          <h3 class="text-md font-bold text-white">Cadastrar Novo Produto</h3>
+          <form onsubmit="cadastrarProduto(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <input type="text" id="prod-nome" placeholder="Nome do Produto" required class="bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+            <input type="text" id="prod-codigo" placeholder="Código de Barras / Ref" class="bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+            <input type="number" id="prod-qtd" placeholder="Quantidade Inicial" required class="bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+            <input type="number" id="prod-min" placeholder="Estoque Mínimo (Alerta)" required class="bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+            <input type="number" step="0.01" id="prod-custo" placeholder="Preço de Custo (R$)" required class="bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+            <input type="number" step="0.01" id="prod-preco" placeholder="Preço de Venda (R$)" required class="bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+            <button type="submit" class="sm:col-span-2 lg:col-span-3 bg-gold text-black font-bold py-2.5 rounded-lg text-sm">Salvar Produto</button>
+          </form>
+        </div>
+
+        <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800 space-y-4">
+          <h3 class="text-md font-bold text-white">Produtos Cadastrados</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-zinc-300">
+              <thead class="bg-[#27272A] text-xs text-zinc-400 uppercase">
+                <tr>
+                  <th class="p-3">Código</th>
+                  <th class="p-3">Produto</th>
+                  <th class="p-3">Estoque</th>
+                  <th class="p-3">Custo</th>
+                  <th class="p-3">Preço Venda</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-produtos-completa" class="divide-y divide-zinc-800">
+                <!-- Renderizado via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 4: DESPESAS -->
+      <section id="mod-despesas" class="hidden space-y-6">
+        <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800 space-y-4">
+          <h3 class="text-md font-bold text-white">Lançar Nova Despesa</h3>
+          <form onsubmit="cadastrarDespesa(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <input type="text" id="desp-descricao" placeholder="Descrição (Ex: Conta de Luz)" required class="bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+            <select id="desp-categoria" class="bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+              <option value="ENERGIA">Energia</option>
+              <option value="AGUA">Água</option>
+              <option value="INTERNET">Internet</option>
+              <option value="ALUGUEL">Aluguel</option>
+              <option value="PRODUTOS">Compra de Insumos</option>
+              <option value="OUTROS">Outros</option>
+            </select>
+            <input type="number" step="0.01" id="desp-valor" placeholder="Valor (R$)" required class="bg-[#27272A] border border-zinc-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+            <button type="submit" class="sm:col-span-3 bg-gold text-black font-bold py-2.5 rounded-lg text-sm">Registrar Despesa</button>
+          </form>
+        </div>
+
+        <div class="bg-[#18181B] p-5 rounded-xl border border-zinc-800 space-y-4">
+          <h3 class="text-md font-bold text-white">Histórico de Despesas</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-zinc-300">
+              <thead class="bg-[#27272A] text-xs text-zinc-400 uppercase">
+                <tr>
+                  <th class="p-3">Data</th>
+                  <th class="p-3">Descrição</th>
+                  <th class="p-3">Categoria</th>
+                  <th class="p-3">Valor</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-despesas" class="divide-y divide-zinc-800">
+                <!-- Renderizado via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- COMPROVANTE DE IMPRESSÃO (ESCONDIDO NA TELA, VISÍVEL AO IMPRIMIR) -->
+  <div id="comprovante-print" class="hidden">
+    <div style="text-align: center; font-family: monospace;">
+      <h2>BARBEARIA INHO DÚ CORTE</h2>
+      <p>Comprovante de Atendimento</p>
+      <hr>
+      <p id="comp-data"></p>
+      <div id="comp-itens" style="text-align: left; margin: 15px 0;"></div>
+      <hr>
+      <h3 id="comp-total"></h3>
+      <p id="comp-pagamento"></p>
+      <p>Obrigado pela preferência!</p>
+    </div>
+  </div>
+
+  <!-- SCRIPT DE NAVEGAÇÃO E REGRAS -->
+  <script>
+    let TOKEN = '';
+    let CARRINHO = [];
+    let LISTA_SERVICOS = [];
+    let LISTA_PRODUTOS = [];
+
+    async function fazerLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, senha })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          TOKEN = data.token;
+          document.getElementById('login-screen').classList.add('hidden');
+          document.getElementById('app-screen').classList.remove('hidden');
+          navegar('dashboard');
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        alert('Erro ao conectar com o servidor.');
+      }
+    }
+
+    function navegar(modulo) {
+      ['dashboard', 'pdv', 'estoque', 'despesas'].forEach(m => {
+        document.getElementById(`mod-${m}`).classList.add('hidden');
+        document.getElementById(`btn-${m}`).className = "nav-btn w-full text-left px-3.5 py-2.5 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white text-sm flex items-center gap-3";
+      });
+
+      document.getElementById(`mod-${modulo}`).classList.remove('hidden');
+      document.getElementById(`btn-${modulo}`).className = "nav-btn w-full text-left px-3.5 py-2.5 rounded-lg bg-[#27272A] text-white font-medium text-sm flex items-center gap-3";
+
+      const titulos = {
+        dashboard: 'Painel Geral',
+        pdv: 'Venda Rápida & Comanda (PDV)',
+        estoque: 'Controle de Produtos & Estoque',
+        despesas: 'Caixa & Despesas Operacionais'
+      };
+      document.getElementById('titulo-pagina').innerText = titulos[modulo];
+
+      if (modulo === 'dashboard') carregarDashboard();
+      if (modulo === 'pdv') carregarPDV();
+      if (modulo === 'estoque') carregarEstoque();
+      if (modulo === 'despesas') carregarDespesas();
+    }
+
+    async function carregarDashboard() {
+      const res = await fetch('/api/dashboard', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+      const data = await res.json();
+
+      document.getElementById('dash-faturamento').innerText = 'R$ ' + data.totalVendido.toFixed(2);
+      document.getElementById('dash-vendas-qtd').innerText = data.qtdVendas;
+      document.getElementById('dash-despesas').innerText = 'R$ ' + data.totalDespesas.toFixed(2);
+      document.getElementById('dash-lucro').innerText = 'R$ ' + data.lucroEstimado.toFixed(2);
+
+      const tbody = document.getElementById('dash-tabela-estoque');
+      if (data.listaEstoqueBaixo.length === 0) {
+        tbody.innerHTML = `<tr><td colSpan="4" class="p-4 text-center text-emerald-400">✅ Todos os produtos com estoque regular.</td></tr>`;
+      } else {
+        tbody.innerHTML = data.listaEstoqueBaixo.map(p => `
+          <tr class="hover:bg-zinc-800/50">
+            <td class="p-3 font-medium text-white">${p.nome}</td>
+            <td class="p-3 font-bold text-red-400">${p.quantidade} un.</td>
+            <td class="p-3 text-zinc-500">${p.estoque_minimo} un.</td>
+            <td class="p-3"><span class="px-2 py-0.5 text-xs bg-red-950 text-red-400 rounded">Repor urgente</span></td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    async function carregarPDV() {
+      const [resSrv, resProd] = await Promise.all([
+        fetch('/api/servicos', { headers: { 'Authorization': 'Bearer ' + TOKEN } }),
+        fetch('/api/produtos', { headers: { 'Authorization': 'Bearer ' + TOKEN } })
+      ]);
+
+      LISTA_SERVICOS = await resSrv.json();
+      LISTA_PRODUTOS = await resProd.json();
+
+      document.getElementById('pdv-servicos-grid').innerHTML = LISTA_SERVICOS.map(s => `
+        <button onclick="adicionarAoCarrinho('servico', ${s.id}, '${s.nome}', ${s.preco})" class="p-3 bg-[#27272A] hover:border-[#D4AF37] border border-transparent rounded-lg text-left transition-all">
+          <p class="font-bold text-sm text-white">${s.nome}</p>
+          <p class="gold-accent text-xs mt-1">R$ ${s.preco.toFixed(2)}</p>
+        </button>
+      `).join('');
+
+      document.getElementById('pdv-produtos-grid').innerHTML = LISTA_PRODUTOS.map(p => `
+        <button onclick="adicionarAoCarrinho('produto', ${p.id}, '${p.nome}', ${p.preco})" ${p.quantidade <= 0 ? 'disabled' : ''} class="p-3 bg-[#27272A] hover:border-[#D4AF37] border border-transparent rounded-lg text-left transition-all ${p.quantidade <= 0 ? 'opacity-40' : ''}">
+          <p class="font-bold text-sm text-white">${p.nome}</p>
+          <p class="text-xs text-zinc-400">Estoque: ${p.quantidade}</p>
+          <p class="gold-accent text-xs mt-1">R$ ${p.preco.toFixed(2)}</p>
+        </button>
+      `).join('');
+    }
+
+    function adicionarAoCarrinho(tipo, id, nome, preco) {
+      const itemExistente = CARRINHO.find(i => i.tipo === tipo && i.id === id);
+      if (itemExistente) {
+        itemExistente.quantidade += 1;
+      } else {
+        CARRINHO.push({ tipo, id, nome, preco, quantidade: 1 });
+      }
+      renderizarCarrinho();
+    }
+
+    function renderizarCarrinho() {
+      const container = document.getElementById('carrinho-itens');
+      if (CARRINHO.length === 0) {
+        container.innerHTML = `<p class="text-xs text-zinc-500 text-center py-6">Nenhum item adicionado ainda.</p>`;
+        document.getElementById('carrinho-total').innerText = 'R$ 0,00';
+        return;
+      }
+
+      let total = 0;
+      container.innerHTML = CARRINHO.map((item, idx) => {
+        const subtotal = item.preco * item.quantidade;
+        total += subtotal;
+        return `
+          <div class="py-2 flex justify-between items-center text-xs">
+            <div>
+              <p class="font-medium text-white">${item.nome}</p>
+              <p class="text-zinc-500">${item.quantidade}x R$ ${item.preco.toFixed(2)}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-white">R$ ${subtotal.toFixed(2)}</span>
+              <button onclick="removerDoCarrinho(${idx})" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('carrinho-total').innerText = 'R$ ' + total.toFixed(2);
+    }
+
+    function removerDoCarrinho(index) {
+      CARRINHO.splice(index, 1);
+      renderizarCarrinho();
+    }
+
+    async function finalizarVenda() {
+      if (CARRINHO.length === 0) return alert('Adicione itens antes de finalizar.');
+
+      const forma_pagamento = document.getElementById('pdv-pagamento').value;
+      const res = await fetch('/api/vendas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + TOKEN
+        },
+        body: JSON.stringify({ itens: CARRINHO, forma_pagamento })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        // Preparar impressão
+        document.getElementById('comp-data').innerText = data.data;
+        document.getElementById('comp-itens').innerHTML = CARRINHO.map(i => `<p>${i.quantidade}x ${i.nome} - R$ ${(i.preco * i.quantidade).toFixed(2)}</p>`).join('');
+        document.getElementById('comp-total').innerText = 'TOTAL: R$ ' + data.total.toFixed(2);
+        document.getElementById('comp-pagamento').innerText = 'PAGO VIA: ' + forma_pagamento;
+
+        window.print();
+
+        CARRINHO = [];
+        renderizarCarrinho();
+        carregarPDV();
+        alert('Venda registrada com sucesso!');
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function carregarEstoque() {
+      const res = await fetch('/api/produtos', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+      const produtos = await res.json();
+
+      document.getElementById('tabela-produtos-completa').innerHTML = produtos.map(p => `
+        <tr class="hover:bg-zinc-800/50">
+          <td class="p-3 text-zinc-500 font-mono text-xs">${p.codigo || '-'}</td>
+          <td class="p-3 font-medium text-white">${p.nome}</td>
+          <td class="p-3 font-bold ${p.quantidade <= p.estoque_minimo ? 'text-red-400' : 'text-emerald-400'}">${p.quantidade} un.</td>
+          <td class="p-3 text-zinc-400">R$ ${p.custo.toFixed(2)}</td>
+          <td class="p-3 gold-accent font-bold">R$ ${p.preco.toFixed(2)}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function cadastrarProduto(e) {
+      e.preventDefault();
+      const body = {
+        nome: document.getElementById('prod-nome').value,
+        codigo: document.getElementById('prod-codigo').value,
+        quantidade: Number(document.getElementById('prod-qtd').value),
+        estoque_minimo: Number(document.getElementById('prod-min').value),
+        custo: Number(document.getElementById('prod-custo').value),
+        preco: Number(document.getElementById('prod-preco').value)
+      };
+
+      const res = await fetch('/api/produtos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        alert('Produto cadastrado com sucesso!');
+        e.target.reset();
+        carregarEstoque();
+      } else {
+        const err = await res.json();
+        alert(err.error);
+      }
+    }
+
+    async function carregarDespesas() {
+      const res = await fetch('/api/despesas', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+      const despesas = await res.json();
+
+      document.getElementById('tabela-despesas').innerHTML = despesas.map(d => `
+        <tr class="hover:bg-zinc-800/50">
+          <td class="p-3 text-zinc-500 text-xs">${new Date(d.data).toLocaleDateString('pt-BR')}</td>
+          <td class="p-3 font-medium text-white">${d.descricao}</td>
+          <td class="p-3 text-zinc-400 text-xs"><span class="px-2 py-0.5 bg-zinc-800 rounded">${d.categoria}</span></td>
+          <td class="p-3 text-red-400 font-bold">R$ ${d.valor.toFixed(2)}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function cadastrarDespesa(e) {
+      e.preventDefault();
+      const body = {
+        descricao: document.getElementById('desp-descricao').value,
+        categoria: document.getElementById('desp-categoria').value,
+        valor: Number(document.getElementById('desp-valor').value)
+      };
+
+      const res = await fetch('/api/despesas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        alert('Despesa registrada!');
+        e.target.reset();
+        carregarDespesas();
+      }
+    }
+
+    function sair() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
